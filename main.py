@@ -19,13 +19,15 @@ DF_TRIPADVISOR_LINK = "TripAdvisor"
 YP_LINK = "Yelp"
 DF_RESTAURANT_NAME = "Name"
 DF_PROCESSED = "Processed"
-DF_NUM_REVIEWS = "Processed"
+DF_TOTAL_USERS = "Total users"
+DF_USERS_FOUND = "Users found"
+DF_REVIEWS_FOUND = "Reviews found"
 
 def _loadInputFile(filename):
     inputFilePath = os.path.join(INPUT_FILE_DIRECTORY, filename)
     df = pd.read_csv(inputFilePath)
-    if not DF_NUM_REVIEWS in df.columns:
-        df[DF_NUM_REVIEWS] = 0
+    if not DF_REVIEWS_FOUND in df.columns:
+        df[DF_REVIEWS_FOUND] = 0
     if not DF_PROCESSED in df.columns:
         df[DF_PROCESSED] = "N"
 
@@ -66,6 +68,9 @@ def _saveData(userData, reviewsData, websiteName):
 def processTripadvisor(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName, restaurantsDataset, index):
     usersInfo, usersReview = scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName)
     restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
+    restaurantsDataset.loc[index, DF_TOTAL_USERS] = len(usersList)
+    restaurantsDataset.loc[index, DF_USERS_FOUND] = len(usersInfo)
+    restaurantsDataset.loc[index, DF_REVIEWS_FOUND] = len(usersReview)
     return  usersInfo, usersReview  
 
 def generateRestaurantUsersMap(usersFileName):
@@ -89,7 +94,7 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
     else:
         restaurantLinkHeader = YP_LINK
 
-    #_acceptPrivacyPolicy(driver, source)    
+    _acceptPrivacyPolicy(driver, source)    
 
 
     logging.info("Scraping process started...")
