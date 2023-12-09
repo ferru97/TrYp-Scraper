@@ -44,7 +44,7 @@ def _openAuthorTab(soup, driver):
 def _getAuthorName(soup):
     try:
         authorNameTag = soup.find("h3")
-        return authorNameTag.getText(separator=TAGS_TEXT_SEPARATOR)
+        return authorNameTag.getText(separator=TAGS_TEXT_SEPARATOR).lower().strip()
     except:
         return DEFAULT_EMPTY     
 
@@ -170,7 +170,7 @@ def getUsersInfo(soup, driver, maxReviewsPage, usersSet):
             for review in reviews:
                 try:
                     newUser = getAuthorObj(review, driver)
-                    if newUser.name.lower().strip() in usersSet:
+                    if newUser.name in usersSet:
                         usersObjList.append(newUser)
                 except:
                     pass

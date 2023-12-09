@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from src.engine.tripadvisor.TripadvisorAuthorScraper import getAuthorObj
 import time
 import logging
+from urllib.parse import urlparse
 
 DEFAULT_EMPTY = "--"
 TAGS_TEXT_SEPARATOR = " "
@@ -99,7 +100,8 @@ def loadMoreReviews(driver):
 
 def getUserReviews(restaurantName, userName, userLink, maxReviews, driver):
     logging.info(f"\tFetching reviews of user {userName}")
-    driver.get(userLink)
+    url = urlparse(driver.current_url) 
+    driver.get(url.netloc.replace("www.", "https://") + userLink)
     time.sleep(2)
 
     expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
@@ -120,5 +122,7 @@ def getUserReviews(restaurantName, userName, userLink, maxReviews, driver):
     reviews = list()
     for review in reviewsCard:
         reviews.append(_getReview(review, driver, userName, restaurantName))
+
+    logging.info(f"\tFound {len(reviews)} reviews for user {userName} ({userLink})")    
     
     return reviews

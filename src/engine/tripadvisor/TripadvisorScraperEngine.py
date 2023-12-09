@@ -12,6 +12,21 @@ def getUserSet(usersList):
         usersSet.add(user.lower().strip())
     return usersSet
 
+def logUsersNotFound(usersInfo, allUsersSet):
+    logging.info(f"\tFound {len(usersInfo)} users out of [{len(allUsersSet)}]")
+    usersFound = set()
+    for user in usersInfo:
+        usersFound.add(user.name)
+
+    usersNotFound = list()
+    for user in allUsersSet:
+        if user not in usersFound:
+            usersNotFound.append(user)
+
+    if len(usersNotFound) > 0:
+        logging.info(f"\tUsers not found: {usersNotFound}")
+
+
 def scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName):
     driver.get(restaurantLink)
     time.sleep(2)
@@ -20,7 +35,9 @@ def scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersLi
     soup = BeautifulSoup(html, 'html.parser')
     usersSet = getUserSet(usersList)
 
-    usersInfo = getUsersInfo(soup, driver, maxUsersSearchPages, usersSet)        
+    usersInfo = getUsersInfo(soup, driver, maxUsersSearchPages, usersSet) 
+    logUsersNotFound(usersInfo, usersSet)  
+
     usersReview = list()
     for user in usersInfo:
         usersReview.append(getUserReviews(restaurantName, user.name, user.link, maxReviews, driver))

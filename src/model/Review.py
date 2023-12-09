@@ -15,16 +15,8 @@ class Review:
         
 
     def getCsvRecord(self):
-        authorData = self._author.__dict__
-        renamedAuthorData = dict()
-        for key in authorData:
-            renamedAuthorData["author_"+key] = authorData[key]
-
         reviewData = self.__dict__
-        reviewData.pop("_author", None)
-
-        return reviewData | renamedAuthorData
-
+        return reviewData
 
 
 

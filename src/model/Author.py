@@ -19,6 +19,9 @@ class Author:
         self.distributionPoor = DEFAULT_VALUE
         self.distributionTerrible = DEFAULT_VALUE
         
+    def getCsvRecord(self):
+        authorData = self.__dict__
+        return authorData
 
 
         

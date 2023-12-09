@@ -41,18 +41,25 @@ def _updateInputFile(filename, df):
 
 
 def _acceptPrivacyPolicy(driver, source):
-    if source == TRIPADVISOR_SOURCE:
-        domain = "https://www.tripadvisor.com/"
-    else:
-        domain = "https://www.yelp.it/"
+    taLinks = ["https://www.tripadvisor.com/", "https://www.tripadvisor.it/Restaurant_Review-g60763-d943906-Reviews-Pera_Mediterranean_Brasserie-New_York_City_New_York.html"]
+    ypLinks = ["https://www.yelp.it"]
 
-    logging.info(f"Accept privacy policy for [{domain}]' and press ENTER...")
-    driver.get(domain)
-    input()
+    if source == TRIPADVISOR_SOURCE:
+        links = taLinks
+    else:
+        links = ypLinks
+
+    for link in links:
+        logging.info(f"Accept privacy policy and press ENTER...")
+        driver.get(link)
+        input()
         
 
 def _saveData(userData, reviewsData, websiteName):
-    reviewsData = [data.getCsvRecord() for data in reviewsData]
+    reviewsData = [item for sublist in reviewsData for item in sublist]
+    userData = [u.getCsvRecord() for u in userData]
+    reviewsData = [r.getCsvRecord() for r in reviewsData]
+    
     userOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_restaurants.csv")
     reviewsOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_restaurants_reviews.csv")
     
@@ -97,6 +104,8 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
     _acceptPrivacyPolicy(driver, source)    
 
 
+    usersInfo = list()
+    usersReview = list()
     logging.info("Scraping process started...")
 
     for index, restaurant in restaurantsDataset.iterrows():
