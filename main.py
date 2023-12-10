@@ -73,7 +73,7 @@ def _saveData(userData, reviewsData, websiteName):
 
 def processTripadvisor(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName, restaurantsDataset, index):
     usersInfo, usersReview = scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName)
-    #restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
+    restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
     restaurantsDataset.loc[index, DF_TOTAL_USERS] = len(usersList)
     restaurantsDataset.loc[index, DF_USERS_FOUND] = len(usersInfo)
     restaurantsDataset.loc[index, DF_REVIEWS_FOUND] = len(usersReview)
