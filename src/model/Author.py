@@ -12,7 +12,7 @@ class Author:
         self.helpful = DEFAULT_VALUE
         self.cites = DEFAULT_VALUE
         self.photos = DEFAULT_VALUE
-        self.tag = DEFAULT_VALUE
+        #self.tag = DEFAULT_VALUE
         self.distributionExcellent = DEFAULT_VALUE
         self.distributionVeryGood = DEFAULT_VALUE
         self.distributionAverage = DEFAULT_VALUE
@@ -21,6 +21,8 @@ class Author:
         
     def getCsvRecord(self):
         authorData = self.__dict__
+        for key in authorData:
+            authorData[key] = authorData[key].replace(";", " ")
         return authorData
 
 

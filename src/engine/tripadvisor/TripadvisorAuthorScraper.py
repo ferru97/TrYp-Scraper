@@ -131,7 +131,7 @@ def getAuthorObj(soup, driver):
         author.helpful = _getAuthorStat(authorTab, "thumbs-up")
         author.cites = _getAuthorStat(authorTab, "globe-world")
         author.photos = _getAuthorStat(authorTab, "camera")
-        author.tag = _getAuthorTags(authorTab)
+        #author.tag = _getAuthorTags(authorTab)
         author.distributionExcellent = _getReviewDistribution(authorTab, 0)
         author.distributionVeryGood = _getReviewDistribution(authorTab, 1)
         author.distributionAverage = _getReviewDistribution(authorTab, 2)
@@ -144,18 +144,24 @@ def getAuthorObj(soup, driver):
     return author
 
 
+def _getNicknameFromUrl(userLink):
+    try:
+        return (userLink.split("/")[-1]).lower()
+    except:
+        return DEFAULT_EMPTY    
+
 def getUsersInfo(soup, driver, maxReviewsPage, usersSet):
     logging.info(f"\tStart finding users")
     usersObjList = list()
 
     isLastPage = False
-    usersFound = 0
+    usersFound = set()
     reviewPageNumber = 0
     try:
         _selectAllLanguages(driver)
-        time.sleep(1)
+        time.sleep(2)
 
-        while usersFound < len(usersSet) and reviewPageNumber < maxReviewsPage and isLastPage == False:
+        while len(usersObjList) < len(usersSet) and reviewPageNumber < maxReviewsPage and isLastPage == False:
             reviewPageNumber += 1
             #_expandReviews(driver)
             #time.sleep(1)
@@ -170,7 +176,8 @@ def getUsersInfo(soup, driver, maxReviewsPage, usersSet):
             for review in reviews:
                 try:
                     newUser = getAuthorObj(review, driver)
-                    if newUser.name in usersSet:
+                    if (newUser.name in usersSet or _getNicknameFromUrl(newUser.link) in usersSet) and newUser.link not in usersFound:
+                        usersFound.add(newUser.link)
                         usersObjList.append(newUser)
                 except:
                     pass

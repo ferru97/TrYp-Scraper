@@ -12,10 +12,12 @@ class Review:
         starsValue = DEFAULT_VALUE
         text = DEFAULT_VALUE
         restaurnat = DEFAULT_VALUE
-        
+        fullReviewLink = DEFAULT_VALUE
 
     def getCsvRecord(self):
         reviewData = self.__dict__
+        for key in reviewData:
+            reviewData[key] = reviewData[key].replace(";", " ")
         return reviewData
 
 

@@ -36,13 +36,15 @@ def scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersLi
     usersSet = getUserSet(usersList)
 
     usersInfo = getUsersInfo(soup, driver, maxUsersSearchPages, usersSet) 
-    logUsersNotFound(usersInfo, usersSet)  
+    logUsersNotFound(usersInfo, usersSet)
 
     usersReview = list()
     for user in usersInfo:
         usersReview.append(getUserReviews(restaurantName, user.name, user.link, maxReviews, driver))
     
-    #getUserReviews(restaurantName, "BeatrizG2", "https://www.tripadvisor.com/Profile/BeatrizG2", maxReviews, driver)
+    usersReview = [item for sublist in usersReview for item in sublist]
+    
+    #getUserReviews(restaurantName, "BeatrizG2", "/Profile/BeatrizG2", maxReviews, driver)
 
     logging.info(f"\tFound {len(usersReview)} reviews for restaurant [{restaurantName}]")
 

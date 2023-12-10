@@ -11,20 +11,14 @@ from urllib.parse import urlparse
 DEFAULT_EMPTY = "--"
 TAGS_TEXT_SEPARATOR = " "
 
-def _expandReviews(chrome, retry=True):
+def _expandReviews(driver):
     try:
-        spans = chrome.find_elements(By.TAG_NAME, 'span')
+        spans = driver.find_elements(By.TAG_NAME, 'span')
         spansMore = [span for span in spans if span.get_attribute("onclick") == "widgetEvCall('handlers.clickExpand',event,this);"]
         if len(spansMore) > 0:
             spansMore[0].click()
-    except Exception as e:
-        logging.error("Expand reviews exception, refreshing page...")
-        if retry:
-            chrome.refresh()
-            time.sleep(2)
-            #_nextReviewPage(chrome, False)
-        else:
-            raise e      
+    except:
+        logging.error("Expand reviews exception, refreshing page...")   
 
 
 def _getReviewTitle(soup):
@@ -66,6 +60,16 @@ def _getReviewRestaurant(soup):
         restaurantLink = soup.findAll("a")
         return (restaurantLink[-1])["href"]
     except:
+        return DEFAULT_EMPTY 
+
+def _getFullReviewLink(soup):
+    try:
+        aTag = soup.findAll("a")
+        for link in aTag:
+            if "ShowUserReviews" in link["href"]:
+                return link["href"]
+        return DEFAULT_EMPTY
+    except:
         return DEFAULT_EMPTY                  
 
 def _getReview(reviewSoup, chrome, userName, restaurantName):
@@ -78,6 +82,7 @@ def _getReview(reviewSoup, chrome, userName, restaurantName):
         review.starsValue = _getReviewStars(reviewSoup)
         review.text = _getReviewText(reviewSoup)
         review.restaurnat = _getReviewRestaurant(reviewSoup)
+        review.fullReviewLink = _getFullReviewLink(reviewSoup)
     except Exception as e:
         pass
     
@@ -97,11 +102,33 @@ def loadMoreReviews(driver):
     except:
         pass
 
+def _enrichWithFullReviewIfNeeded(review, baseUrl, driver):
+    try:
+        if not review.text.endswith("..."):
+            return
+        
+        driver.get(baseUrl + review.fullReviewLink)
+        time.sleep(1.5)
+
+        expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
+        soup = BeautifulSoup(expandedHtml, 'html.parser')
+        pTags = soup.findAll("p")
+
+        reviewPrefix = (review.text[0:15]).lower()
+        for p in pTags:
+            pText = p.getText(separator=TAGS_TEXT_SEPARATOR)
+            if reviewPrefix in pText.lower():
+                review.text = pText
+    except:
+        pass
+
 
 def getUserReviews(restaurantName, userName, userLink, maxReviews, driver):
     logging.info(f"\tFetching reviews of user {userName}")
-    url = urlparse(driver.current_url) 
-    driver.get(url.netloc.replace("www.", "https://") + userLink)
+    baseUrl = urlparse(driver.current_url).netloc
+    if "https" not in baseUrl:
+        baseUrl = "https://" + baseUrl
+    driver.get(baseUrl + userLink)
     time.sleep(2)
 
     expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
@@ -122,6 +149,9 @@ def getUserReviews(restaurantName, userName, userLink, maxReviews, driver):
     reviews = list()
     for review in reviewsCard:
         reviews.append(_getReview(review, driver, userName, restaurantName))
+
+    for review in reviews:
+        _enrichWithFullReviewIfNeeded(review, baseUrl, driver)
 
     logging.info(f"\tFound {len(reviews)} reviews for user {userName} ({userLink})")    
     

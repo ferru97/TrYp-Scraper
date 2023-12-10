@@ -56,25 +56,24 @@ def _acceptPrivacyPolicy(driver, source):
         
 
 def _saveData(userData, reviewsData, websiteName):
-    reviewsData = [item for sublist in reviewsData for item in sublist]
     userData = [u.getCsvRecord() for u in userData]
     reviewsData = [r.getCsvRecord() for r in reviewsData]
     
-    userOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_restaurants.csv")
-    reviewsOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_restaurants_reviews.csv")
+    userOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_user.csv")
+    reviewsOutputFile = os.path.join(OUTPUT_FILE_DIRECTORY, f"{websiteName}_reviews.csv")
     
     withHeaderRestaurant = os.path.exists(userOutputFile) == False
     outputRestaurantDf = pd.DataFrame(userData)
-    outputRestaurantDf.to_csv(userOutputFile, sep='\t', quotechar='"', encoding='utf-8', mode='a', header=withHeaderRestaurant)
+    outputRestaurantDf.to_csv(userOutputFile, sep=';', quotechar='"', encoding='utf-8', mode='a', header=withHeaderRestaurant, index=False)
 
     withHeaderReview = os.path.exists(reviewsOutputFile) == False
     outputRviewsDf = pd.DataFrame(reviewsData)
-    outputRviewsDf.to_csv(reviewsOutputFile, sep='\t', quotechar='"', encoding='utf-8', mode='a', header=withHeaderReview)  
+    outputRviewsDf.to_csv(reviewsOutputFile, sep=';', quotechar='"', encoding='utf-8', mode='a', header=withHeaderReview, index=False)  
 
 
 def processTripadvisor(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName, restaurantsDataset, index):
     usersInfo, usersReview = scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName)
-    restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
+    #restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
     restaurantsDataset.loc[index, DF_TOTAL_USERS] = len(usersList)
     restaurantsDataset.loc[index, DF_USERS_FOUND] = len(usersInfo)
     restaurantsDataset.loc[index, DF_REVIEWS_FOUND] = len(usersReview)
@@ -141,21 +140,17 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
         except Exception as e:
             logging.warning(f"{index+1}/{restaurant.size} Error while processing restaurant [{restaurantName}]! : {str(e)}")
 
-    
-    _saveData(usersInfo, usersReview, source)
-    _updateInputFile(filename, restaurantsDataset)
-
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
-    logging.info("YUMMY SCOUT!\n")
+    logging.info("TrYp Scraper!\n")
 
     parser = argparse.ArgumentParser(description='TrYp Scraper')
+    parser.add_argument('--restaurant_file', required=True, help='input restaurants file name')
     parser.add_argument('--users_file', required=True, help='input users file name')
-    parser.add_argument('--file', required=True, help='input file name')
     parser.add_argument('--max-reviews', required=True, type=int, help='maximum number of reviews to fetch for each restaurant')
-    parser.add_argument('--max-users-search-pages', required=True, type=int, help='maximum of reviews pages to ')
-    parser.add_argument('--source', required=True, help='source to scrape from: tripadvisor or yp')
+    parser.add_argument('--max-users-search-pages', required=True, type=int, help='maximum number of reviews pages to search for users ')
+    parser.add_argument('--source', required=True, help='source to scrape from: tripadvisor or yelp')
     args = parser.parse_args()
 
     if args.source not in [TRIPADVISOR_SOURCE, YELP_SOURCE]:
