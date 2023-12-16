@@ -6,6 +6,8 @@ from src.engine.tripadvisor.TripadvisorAuthorScraper import *
 from pprint import pprint      
 import time            
 
+TRIPADVISOR_SOURCE = "tripadvisor"
+
 def getUserSet(usersList):
     usersSet = set()
     for user in usersList:
@@ -27,7 +29,7 @@ def logUsersNotFound(usersInfo, allUsersSet):
         logging.info(f"\tUsers not found: {usersNotFound}")
 
 
-def scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName):
+def scrapeRestaurant(source, driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName):
     driver.get(restaurantLink)
     time.sleep(2)
 
@@ -35,12 +37,15 @@ def scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersLi
     soup = BeautifulSoup(html, 'html.parser')
     usersSet = getUserSet(usersList)
 
-    usersInfo = getUsersInfo(soup, driver, maxUsersSearchPages, usersSet) 
+    if source == TRIPADVISOR_SOURCE:
+        usersInfo = getTripadvisorUsersInfo(soup, driver, maxUsersSearchPages, usersSet) 
     logUsersNotFound(usersInfo, usersSet)
 
     usersReview = list()
     for user in usersInfo:
-        usersReview.append(getUserReviews(restaurantName, user.name, user.link, maxReviews, driver))
+        if source == TRIPADVISOR_SOURCE:
+            usersReviewsList = getUserTripadvisorReviews(restaurantName, user.name, user.link, maxReviews, driver)
+        usersReview.append(usersReviewsList)
     
     usersReview = [item for sublist in usersReview for item in sublist]
     

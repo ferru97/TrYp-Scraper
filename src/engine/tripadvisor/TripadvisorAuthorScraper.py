@@ -150,7 +150,7 @@ def _getNicknameFromUrl(userLink):
     except:
         return DEFAULT_EMPTY    
 
-def getUsersInfo(soup, driver, maxReviewsPage, usersSet):
+def getTripadvisorUsersInfo(soup, driver, maxReviewsPage, usersSet):
     logging.info(f"\tStart finding users")
     usersObjList = list()
 

@@ -6,7 +6,7 @@ import argparse
 import validators
 import pandas as pd
 import src.utils.SeleniumUtils as SeleniumUtils
-from src.engine.tripadvisor.TripadvisorScraperEngine import *
+from src.engine.ScraperEngine import *
 from urllib.parse import urlparse
 
 INPUT_FILE_DIRECTORY = "input/"
@@ -71,8 +71,8 @@ def _saveData(userData, reviewsData, websiteName):
     outputRviewsDf.to_csv(reviewsOutputFile, sep=';', quotechar='"', encoding='utf-8', mode='a', header=withHeaderReview, index=False)  
 
 
-def processTripadvisor(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName, restaurantsDataset, index):
-    usersInfo, usersReview = scrapeTripadvisorRestaurant(driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName)
+def processTripadvisor(source, driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName, restaurantsDataset, index):
+    usersInfo, usersReview = scrapeRestaurant(source, driver, maxReviews, maxUsersSearchPages, usersList, restaurantLink, restaurantName)
     restaurantsDataset.loc[index, DF_PROCESSED] = "Y"
     restaurantsDataset.loc[index, DF_TOTAL_USERS] = len(usersList)
     restaurantsDataset.loc[index, DF_USERS_FOUND] = len(usersInfo)
@@ -109,15 +109,15 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
 
     for index, restaurant in restaurantsDataset.iterrows():
         restaurantId = index + 1
-        if restaurantId not in restaurantUsersMap:
-            logging.info(f"{index+1}/{datasetSize} Restaurant [{restaurantName}] not available in users review file")
-            continue
-
         restaurantLink = str(restaurant[restaurantLinkHeader])
         restaurantName =  restaurant[DF_RESTAURANT_NAME]
 
         if restaurant[DF_PROCESSED] == "Y":
             logging.info(f"{index+1}/{datasetSize} Restaurant [{restaurantName}] already processed...")
+            continue
+        
+        if restaurantId not in restaurantUsersMap:
+            logging.info(f"{index+1}/{datasetSize} Restaurant [{restaurantName}] not available in users review file. No user found with restaurant_ID={index+1}")
             continue
 
         if validators.url(restaurantLink) == False:
@@ -127,8 +127,8 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
         try:
             timeStart = time.time()
             logging.info(f"{index+1}/{datasetSize} Scraping restaurant [{restaurantName}] from [{source}]...")
-            if source == TRIPADVISOR_SOURCE:
-                usersInfo, usersReview = processTripadvisor(driver, maxReviews, maxUsersSearchPages, restaurantUsersMap[restaurantId], restaurantLink, restaurantName, restaurantsDataset, index)
+            
+            usersInfo, usersReview = processTripadvisor(source, driver, maxReviews, maxUsersSearchPages, restaurantUsersMap[restaurantId], restaurantLink, restaurantName, restaurantsDataset, index)  
 
             timeEnd = time.time()
             logging.info(f"\tFinished scraping restaurant [{restaurantName}] in {int(timeEnd-timeStart)} seconds")

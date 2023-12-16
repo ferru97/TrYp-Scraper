@@ -123,7 +123,7 @@ def _enrichWithFullReviewIfNeeded(review, baseUrl, driver):
         pass
 
 
-def getUserReviews(restaurantName, userName, userLink, maxReviews, driver):
+def getUserTripadvisorReviews(restaurantName, userName, userLink, maxReviews, driver):
     logging.info(f"\tFetching reviews of user {userName}")
     baseUrl = urlparse(driver.current_url).netloc
     if "https" not in baseUrl:
