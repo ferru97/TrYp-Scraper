@@ -157,4 +157,4 @@ if __name__ == "__main__":
         logging.critical(f"Invalid source [{args.source}], choose between [{TRIPADVISOR_SOURCE}] and [{YELP_SOURCE}]")
         sys.exit()
 
-    run(args.restaurant_file, args.users_file, args.max_reviews, args.max_users_search_pages, args.source)
+    run(args.file, args.users_file, args.max_reviews, args.max_users_search_pages, args.source)
