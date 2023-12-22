@@ -150,8 +150,8 @@ def getUserTripadvisorReviews(restaurantName, userName, userLink, maxReviews, dr
     for review in reviewsCard:
         reviews.append(_getReview(review, driver, userName, restaurantName))
 
-    for review in reviews:
-        _enrichWithFullReviewIfNeeded(review, baseUrl, driver)
+    #for review in reviews:
+    #    _enrichWithFullReviewIfNeeded(review, baseUrl, driver)
 
     logging.info(f"\tFound {len(reviews)} reviews for user {userName} ({userLink})")    
     
