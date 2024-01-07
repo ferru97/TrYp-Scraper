@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": ["--restaurant_file", "restaurants_full.csv", "--users_file", "input_ta_full.csv", "--max-reviews", "5" ,"--source", "tripadvisor", "--max-users-search-pages", "1"],
+            "args": ["--restaurant_file", "restaurants.csv", "--users_file", "YP_rev.csv", "--max-reviews", "55" ,"--source", "yelp", "--max-users-search-pages", "1"],
             "justMyCode": true
         }
     ]

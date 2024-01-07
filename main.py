@@ -42,7 +42,7 @@ def _updateInputFile(filename, df):
 
 def _acceptPrivacyPolicy(driver, source):
     taLinks = ["https://www.tripadvisor.com/", "https://www.tripadvisor.it/Restaurant_Review-g60763-d943906-Reviews-Pera_Mediterranean_Brasserie-New_York_City_New_York.html"]
-    ypLinks = ["https://www.yelp.it"]
+    ypLinks = ["https://www.yelp.com/biz/pera-mediterranean-brasserie-new-york"]
 
     if source == TRIPADVISOR_SOURCE:
         links = taLinks
@@ -157,4 +157,4 @@ if __name__ == "__main__":
         logging.critical(f"Invalid source [{args.source}], choose between [{TRIPADVISOR_SOURCE}] and [{YELP_SOURCE}]")
         sys.exit()
 
-    run(args.file, args.users_file, args.max_reviews, args.max_users_search_pages, args.source)
+    run(args.restaurant_file, args.users_file, args.max_reviews, args.max_users_search_pages, args.source)

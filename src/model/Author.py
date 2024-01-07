@@ -18,12 +18,22 @@ class Author:
         self.distributionAverage = DEFAULT_VALUE
         self.distributionPoor = DEFAULT_VALUE
         self.distributionTerrible = DEFAULT_VALUE
+
+        #Added for Yelp
+        self.friends = DEFAULT_VALUE
+        self.photos = DEFAULT_VALUE
+        self.reviews = DEFAULT_VALUE
+        self.tagsReviewMap = dict()
+        self.tagsComplimentMap = dict()
         
     def getCsvRecord(self):
         authorData = self.__dict__
+        extraData = dict()
         for key in authorData:
-            authorData[key] = authorData[key].replace(";", " ")
-        return authorData
-
-
-        
+            if type(authorData[key]) is dict:
+                dictValues = authorData[key]
+                for k, v in dictValues.items():
+                    extraData[k] = v
+            else:
+                authorData[key] = authorData[key].replace(";", " ")
+        return {**authorData, **extraData}

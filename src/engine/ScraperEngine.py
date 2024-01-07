@@ -3,6 +3,8 @@ import logging
 from bs4 import BeautifulSoup
 from src.engine.tripadvisor.TripadvisorReviewsScraper import *
 from src.engine.tripadvisor.TripadvisorAuthorScraper import *
+from src.engine.yelp.YelpAuthorScraper import *
+from src.engine.yelp.YelpReviewsAndAuthorScraper import *
 from pprint import pprint      
 import time            
 
@@ -37,20 +39,24 @@ def scrapeRestaurant(source, driver, maxReviews, maxUsersSearchPages, usersList,
     soup = BeautifulSoup(html, 'html.parser')
     usersSet = getUserSet(usersList)
 
-    if source == TRIPADVISOR_SOURCE:
-        usersInfo = getTripadvisorUsersInfo(soup, driver, maxUsersSearchPages, usersSet) 
+    if source == TRIPADVISOR_SOURCE: 
+        usersInfo = getTripadvisorUsersInfo(soup, driver, maxUsersSearchPages, usersSet)
+    else:
+        usersInfo = getYelpUsersInfo(soup, driver, maxUsersSearchPages, usersSet)
+
     logUsersNotFound(usersInfo, usersSet)
 
     usersReview = list()
     for user in usersInfo:
+        if user.link == "--":
+            continue
+        
         if source == TRIPADVISOR_SOURCE:
-            usersReviewsList = getUserTripadvisorReviews(restaurantName, user.name, user.link, maxReviews, driver)
-        usersReview.append(usersReviewsList)
-    
+            userReviewsList = getUserTripadvisorReviews(restaurantName, user.name, user.link, maxReviews, driver)
+        else:
+            userReviewsList = getYelpUserReviews(restaurantName, user, maxReviews, driver)
+        usersReview.append(userReviewsList)
+     
     usersReview = [item for sublist in usersReview for item in sublist]
     
-    #getUserReviews(restaurantName, "BeatrizG2", "/Profile/BeatrizG2", maxReviews, driver)
-
-    logging.info(f"\tFound {len(usersReview)} reviews for restaurant [{restaurantName}]")
-
     return usersInfo, usersReview
