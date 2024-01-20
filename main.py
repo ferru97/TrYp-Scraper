@@ -19,6 +19,8 @@ DF_TRIPADVISOR_LINK = "TripAdvisor"
 YP_LINK = "Yelp"
 DF_RESTAURANT_NAME = "Name"
 DF_PROCESSED = "Processed"
+DF_PROCESSED_TA = "Processed_TA"
+DF_PROCESSED_YP = "Processed_YP"
 DF_TOTAL_USERS = "Total users"
 DF_USERS_FOUND = "Users found"
 DF_REVIEWS_FOUND = "Reviews found"
@@ -97,8 +99,10 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
     
     if source == TRIPADVISOR_SOURCE:
         restaurantLinkHeader = DF_TRIPADVISOR_LINK
+        DF_PROCESSED = DF_PROCESSED_TA
     else:
         restaurantLinkHeader = YP_LINK
+        DF_PROCESSED = DF_PROCESSED_YP
 
     _acceptPrivacyPolicy(driver, source)    
 
