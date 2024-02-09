@@ -30,8 +30,10 @@ def _loadInputFile(filename):
     df = pd.read_csv(inputFilePath)
     if not DF_REVIEWS_FOUND in df.columns:
         df[DF_REVIEWS_FOUND] = 0
-    if not DF_PROCESSED in df.columns:
-        df[DF_PROCESSED] = "N"
+    if not DF_PROCESSED_TA in df.columns:
+        df[DF_PROCESSED_TA] = "N"
+    if not DF_PROCESSED_YP in df.columns:
+        df[DF_PROCESSED_YP] = "N"    
 
     df.to_csv(inputFilePath, index=False)    
     logging.info(f'Loaded dataset with {len(df.index)} records')
