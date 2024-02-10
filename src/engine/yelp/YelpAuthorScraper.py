@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from src.model.Author import Author
 from selenium.webdriver.common.by import By
 import time
+import logging
 from pprint import pprint  
 
 DEFAULT_EMPTY = "--"
@@ -81,6 +82,10 @@ def getYelpUsersInfo(soup, driver, maxReviewsPage, usersSet):
         soup = BeautifulSoup(hmtl, 'html.parser')
 
         reviewsListTag = soup.find(attrs={'id':'reviews'})
+        if reviewsListTag is None:
+            logging.warning(f"No more users available")
+            break;
+        
         for review in reviewsListTag.findAll("li"):
             try:
                 newUser = getAuthorObj(review)
