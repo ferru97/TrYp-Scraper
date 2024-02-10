@@ -144,7 +144,7 @@ def run(filename, usersFileName, maxReviews, maxUsersSearchPages, source):
                 _saveData(usersInfo, usersReview, source)
                 _updateInputFile(filename, restaurantsDataset)
         except Exception as e:
-            logging.warning(f"{index+1}/{restaurant.size} Error while processing restaurant [{restaurantName}]! : {str(e)}")
+            logging.warning(f"{index+1}/{datasetSize} Error while processing restaurant [{restaurantName}]! : {str(e)}")
 
 
 if __name__ == "__main__":
