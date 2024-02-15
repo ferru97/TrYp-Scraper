@@ -135,6 +135,10 @@ def getUserTripadvisorReviews(restaurantName, userName, userLink, maxReviews, dr
     soup = BeautifulSoup(expandedHtml, 'html.parser')
     reviewsListTag = soup.find("div", {"id" : "content"})
 
+    reviews = list()
+    if reviewsListTag is None:
+        return reviews
+
     stop = False
     reviewsCard = reviewsListTag.findAll("div", {"class" :  re.compile("^trTZI ui_card section")})
     while stop == False and len(reviewsCard) < maxReviews:
@@ -146,7 +150,7 @@ def getUserTripadvisorReviews(restaurantName, userName, userLink, maxReviews, dr
         reviewsCard = soup.findAll("div", {"class" :  re.compile("^trTZI ui_card section")})
         stop = lastReviewsCards == len(reviewsCard)
 
-    reviews = list()
+    
     for review in reviewsCard:
         reviews.append(_getReview(review, driver, userName, restaurantName))
 
