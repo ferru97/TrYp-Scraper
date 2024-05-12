@@ -13,7 +13,7 @@ TAGS_TEXT_SEPARATOR = " "
 
 def _getReviewRestaurantNameAndLink(soup):
     try:
-        retuaurantTag = soup.find('div', {'class': "css-1jlm262"})
+        retuaurantTag = soup.find('div', {'class': "yelp-emotion-16lye5o"})
         restaurantLink = retuaurantTag.find('a')
         return restaurantLink.getText(separator=TAGS_TEXT_SEPARATOR), restaurantLink["href"]
     except Exception as e:
@@ -22,7 +22,7 @@ def _getReviewRestaurantNameAndLink(soup):
 def _getReviewRestaurantCategory(soup):
     try:
         categoryies = list()
-        retuaurantTag = soup.find('div', {'class': "css-1jlm262"})
+        retuaurantTag = soup.find('div', {'class': "yelp-emotion-16lye5o"})
         restaurantLink = retuaurantTag.findAll('a')
         for link in restaurantLink:
             if "/search?" in link["href"]:
@@ -33,7 +33,7 @@ def _getReviewRestaurantCategory(soup):
     
 def _getReviewRestaurantLocation(soup):
     try:
-        retuaurantTag = soup.find('div', {'class': "css-1jlm262"})
+        retuaurantTag = soup.find('div', {'class': "yelp-emotion-16lye5o"})
         restaurantInfo = retuaurantTag.findAll('p')
         return restaurantInfo[1].getText(separator=TAGS_TEXT_SEPARATOR)
     except Exception as e:
@@ -41,8 +41,8 @@ def _getReviewRestaurantLocation(soup):
 
 def _getReviewDate(soup):
     try:
-        restuaurantTagInfo = soup.find('div', {'class': "css-10n911v"})
-        dateSpan = restuaurantTagInfo.find("span", {"class" : "css-chan6m"})
+        restuaurantTagInfo = soup.find('div', {'class': "yelp-emotion-19pbem2"})
+        dateSpan = restuaurantTagInfo.find("span", {"class" : "yelp-emotion-v293gj"})
         return dateSpan.getText(separator=TAGS_TEXT_SEPARATOR)
     except Exception as e:
         return DEFAULT_EMPTY 
@@ -50,7 +50,7 @@ def _getReviewDate(soup):
 def _getReviewStars(soup):
     try:
         restuaurantTagInfo = soup.find('div', {'class': "css-10n911v"})
-        starTag = restuaurantTagInfo.find("div", {"class" : "css-14g69b3"})
+        starTag = restuaurantTagInfo.find("div", {"class" : "yelp-emotion-9tnml4"})
         return starTag["aria-label"].split(" ")[0]
     except Exception as e:
         return DEFAULT_EMPTY     
@@ -67,7 +67,7 @@ def _getReviewtext(soup):
 
 def _getReviewLikes(soup, index):
     try:
-        likeButtons = soup.findAll("button", {'class':'button__09f24__qYw19'})
+        likeButtons = soup.findAll("span", {'class':'yelp-emotion-kbraxm'})
         info = likeButtons[index].getText(separator=TAGS_TEXT_SEPARATOR).split(" ")
         return info[2]
     except Exception as e:
@@ -92,7 +92,7 @@ def _loadNextPage(soup, driver, url, page):
         pass
     return True, None  
 
-def _getReview(soup):
+def _getReview(soup, userLink):
     review = Review()
     try:
         restaurantName, restaurantLink = _getReviewRestaurantNameAndLink(soup)
@@ -106,6 +106,7 @@ def _getReview(soup):
         review.useful = _getReviewLikes(soup, 0)
         review.funny = _getReviewLikes(soup, 1)
         review.cool = _getReviewLikes(soup, 2)
+        review.user = userLink
     except Exception as e:
         pass
     return review
@@ -203,9 +204,9 @@ def getYelpUserReviews(restaurantName, userObj, maxReviews, driver):
     page = 0
     reviews = list()
     while len(reviews) < maxReviews and lastPage == False:
-        reviewsBox = soup.findAll('li', {'class':'css-1iczb67'})
+        reviewsBox = soup.findAll('li', {'class':'yelp-emotion-3xeaoc'})
         for reviewBox in reviewsBox:
-            reviewObj = _getReview(reviewBox)
+            reviewObj = _getReview(reviewBox, userObj.link)
             reviews.append(reviewObj)
 
         page = page + 1
