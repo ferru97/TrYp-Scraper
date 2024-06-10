@@ -74,7 +74,7 @@ def _getReviewLikes(soup, index):
         pass
     return DEFAULT_EMPTY  
 
-def _loadNextPage(soup, driver, url, page):
+def loadNextPage(soup, driver, url, page):
     try:
         nextPage = 10 * page
         nextPageUrl = url + "&start=" + str(nextPage)
