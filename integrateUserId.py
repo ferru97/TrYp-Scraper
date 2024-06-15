@@ -6,36 +6,84 @@ import src.utils.SeleniumUtils as SeleniumUtils
 from bs4 import BeautifulSoup
 from src.engine.yelp.YelpReviewsAndAuthorScraper import loadNextPage
 import math
+import time
 
 INPUT_FILE_DIRECTORY = "input2/"
 USER_ID = "user_id_link"
 
+def loadNextPage(driver, url, page):
+    try:
+        nextPage = 10 * page
+        nextPageUrl = url + "?start=" + str(nextPage)
+        driver.get(nextPageUrl)
+        time.sleep(2.5)
 
-def findUsersLink(driver, restaurantLink, reviews, maxRev):
+        expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
+        soup = BeautifulSoup(expandedHtml, 'html.parser')
+
+        return soup
+    except Exception as e:
+        pass
+    return None  
+
+def jaccard_sim(text1, text2):
+    set1 = set(text1.split())
+    set2 = set(text2.split())
+    intersection = set1.intersection(set2)
+    union = set1.union(set2)
+    return len(intersection) / len(union)
+
+
+def findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDf):
     userNameMap = dict()
     for rev in reviews:
-        if rev["user_name"] not in userNameMap:
-          userNameMap[rev["user_name"]] = list()
-        userNameMap[rev["user_name"]].append(rev)  
+        if (rev[1])["user_name"] not in userNameMap:
+          userNameMap[(rev[1])["user_name"]] = list()
+        userNameMap[(rev[1])["user_name"]].append(rev)  
 
     driver.get(restaurantLink)
+    time.sleep(2.5)
     expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
     soup = BeautifulSoup(expandedHtml, 'html.parser')
 
-    reviewsTag = soup.findAll("li", {"class": "y-css-1jp2syp"})
+    totalReviews = len(reviews)
+    reviewsFound = 0
+    stop = False
+    page = 0
+    while reviewsFound < totalReviews and stop == False:
+        try:
+            reviewsTag = soup.findAll("li", {"class": "y-css-1jp2syp"})
+            stop = findReview(reviewsDf, userNameMap, reviewsTag, totalReviews, reviewsFound)
+            stop = stop == True or len(reviewsTag) < 4 or page > maxPages
+            page = page + 1
+            soup = loadNextPage(driver, restaurantLink, page)
+        except:
+            pass    
+        
+
+def findReview(reviewsDf, userNameMap, reviewsTag, totalReviews, reviewsFound):
     for reviewTag in reviewsTag:
         try:
-            name = reviewTag.find('a', {"class": "y-css-12ly5yx"}).getText().strip()
+            nameTag = reviewTag.find('a', {"class": "y-css-12ly5yx"})
+            name = nameTag.getText().strip()
+            link = nameTag["href"]
             text = reviewTag.find('span', {"class": "raw__09f24__T4Ezm"}).getText().strip()
             if name in userNameMap:
-                pass
+                for userReview in userNameMap[name]:
+                    if (userReview[1])["user_id_link"] != "NOT_FOUND":
+                        similarity = jaccard_sim((userReview[1])["review_text"], text)
+                        if similarity >= 0.70:
+                            logging.info(f"Found user {name} - Reviews found {reviewsFound}/{totalReviews}")
+                            reviewsDf.loc [userReview[0], "user_id_link"] = link
+                            reviewsFound = reviewsFound + 1
+                            if reviewsFound == totalReviews:
+                                return True
         except:
-            pass
+            continue
+    return False
 
 
-
-
-def run(userFile, reviewsFile, restaurantFile):
+def run(userFile, reviewsFile, restaurantFile, maxPages):
     restaurantInputPath = os.path.join(INPUT_FILE_DIRECTORY, restaurantFile)
     restaurantDataset = pd.read_csv(restaurantInputPath)
 
@@ -50,30 +98,27 @@ def run(userFile, reviewsFile, restaurantFile):
     for index, review in reviewsDataset.iterrows():
         if review[USER_ID] == "NOT_FOUND":
             if  math.isnan(review["restaurant_ID"]):
-                restaurantUserMap[0].append(review)
+                restaurantUserMap[0].append((index,review))
                 continue
             else:
                 if review["restaurant_ID"] not in restaurantUserMap:
                     restaurantUserMap[review["restaurant_ID"]] = list()
-                restaurantUserMap[review["restaurant_ID"]].append(review)
+                restaurantUserMap[review["restaurant_ID"]].append((index,review))
 
     driver = SeleniumUtils.getSeleniumInstanceFirefox()
+    size = len(restaurantUserMap)
+    i = 0
     for restaurantId, reviews in restaurantUserMap.items():
         try:
             restaurant = restaurantDataset.loc[restaurantDataset['id'] == restaurantId].iloc[0]
+            logging.info(f"Restaurant {i}/{size}")
             restaurantLink = restaurant["Yelp"]
-            findUsersLink(driver, restaurantLink, reviews, 100)
+            findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDataset)
+            i = i + 1
             #reviewsDataset.to_csv(reviewsInputFilePath, index=False)
         except:
             pass  
-        
 
-
-    #reviewsDataset.to_csv(reviewsInputFilePath, index=False)
-
-    #driver = SeleniumUtils.getSeleniumInstanceFirefox()
-    #datasetSize = len(userDataset.index)
-    #for index, user in userDataset.iterrows():
 
     logging.info(f"Done!")
 
@@ -85,6 +130,7 @@ if __name__ == "__main__":
     parser.add_argument('--restaurant_file', required=True, help='input restaurants file name')
     parser.add_argument('--yelp_user_file', required=True, help='input restaurants file name')
     parser.add_argument('--yelp_reviews_file', required=True, help='input restaurants file name')
+    parser.add_argument('--yelp_reviews_max_page', required=True, help='input restaurants file name')
     args = parser.parse_args()
 
-    run(args.yelp_user_file, args.yelp_reviews_file, args.restaurant_file)
+    run(args.yelp_user_file, args.yelp_reviews_file, args.restaurant_file, int(args.yelp_reviews_max_page))
