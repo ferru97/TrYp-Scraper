@@ -25,6 +25,12 @@ def loadNextPage(driver, url, page):
         pass
     return None  
 
+def isLastPage(soup, currentPage):
+    try:
+        return currentPage >= int(soup.find("div", {"aria-label":"Pagination navigation"}).getText().split(" ")[2])
+    except:
+        False
+
 def jaccard_sim(text1, text2):
     set1 = set(text1.split())
     set2 = set(text2.split())
@@ -54,7 +60,7 @@ def findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDf):
         try:
             reviewsTag = soup.findAll("li", {"class": "y-css-1jp2syp"})
             stop, reviewsFound = findReview(reviewsDf, userNameMap, reviewsTag, totalReviews, reviewsFound)
-            stop = stop == True or page > maxPages
+            stop = stop == True or page > maxPages or isLastPage(soup, page)
             page = page + 1
             soup = loadNextPage(driver, restaurantLink, page)
         except:
