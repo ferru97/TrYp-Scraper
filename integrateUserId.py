@@ -20,7 +20,7 @@ def loadNextPage(driver, url, page):
     try:
         nextPage = "?sort_by=date_desc"
         if page > 0:
-            nextPage = "&start=" + str(10 * page)
+            nextPage = nextPage + "&start=" + str(10 * page)
         nextPageUrl = url + nextPage
         loadPage(driver, nextPageUrl)
         expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
@@ -110,7 +110,6 @@ def run(userFile, reviewsFile, restaurantFile, maxPages):
                 restaurantUserMap[review["restaurant_ID"]].append((index,review))
                 
 
-    print(restaurantUserMap.keys())
     driver = SeleniumUtils.getSeleniumInstanceFirefox()
     size = len(restaurantUserMap)
     i = 1
