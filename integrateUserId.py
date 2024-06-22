@@ -10,13 +10,20 @@ import time
 INPUT_FILE_DIRECTORY = "input2/"
 USER_ID = "user_id_link"
 
+def loadPage(driver, url):
+    driver.get(url)
+    time.sleep(2)
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(2)
+
 def loadNextPage(driver, url, page):
     try:
-        nextPage = 10 * page
-        nextPageUrl = url + "?start=" + str(nextPage)
-        driver.get(nextPageUrl)
-        time.sleep(4)
-
+        if page == 0:
+            nextPage = ""
+        else:
+            nextPage = "?start=" + str(10 * page)
+        nextPageUrl = url + nextPage
+        loadPage(driver, nextPageUrl)
         expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
         soup = BeautifulSoup(expandedHtml, 'html.parser')
 
@@ -47,8 +54,7 @@ def findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDf):
           userNameMap[(rev[1])["user_name"]] = list()
         userNameMap[(rev[1])["user_name"]].append(rev)  
 
-    driver.get(restaurantLink)
-    time.sleep(4)
+    loadNextPage(driver, restaurantLink, 0)
     expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
     soup = BeautifulSoup(expandedHtml, 'html.parser')
 
@@ -93,38 +99,35 @@ def run(userFile, reviewsFile, restaurantFile, maxPages):
     restaurantInputPath = os.path.join(INPUT_FILE_DIRECTORY, restaurantFile)
     restaurantDataset = pd.read_csv(restaurantInputPath)
 
-    userInputFilePath = os.path.join(INPUT_FILE_DIRECTORY, userFile)
-    userDataset = pd.read_excel(userInputFilePath)
-
     reviewsInputFilePath = os.path.join(INPUT_FILE_DIRECTORY, reviewsFile)
     reviewsDataset = pd.read_csv(reviewsInputFilePath)
 
     restaurantUserMap = dict()
-    restaurantUserMap[0] = list()
     for index, review in reviewsDataset.iterrows():
         if review[USER_ID] == "NOT_FOUND":
-            if  math.isnan(review["restaurant_ID"]):
-                restaurantUserMap[0].append((index,review))
-                continue
-            else:
+            if  math.isnan(review["restaurant_ID"]) == False:
                 if review["restaurant_ID"] not in restaurantUserMap:
                     restaurantUserMap[review["restaurant_ID"]] = list()
                 restaurantUserMap[review["restaurant_ID"]].append((index,review))
+                
 
+    print(restaurantUserMap.keys())
     driver = SeleniumUtils.getSeleniumInstanceFirefox()
     size = len(restaurantUserMap)
     i = 1
     for restaurantId, reviews in restaurantUserMap.items():
-        try:
-            restaurant = restaurantDataset.loc[restaurantDataset['id'] == restaurantId].iloc[0]
-            logging.info(f"Restaurant {i}/{size}")
-            restaurantLink = restaurant["Yelp"]
-            findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDataset)
-            i = i + 1
-            logging.info(f"Saveing...")
-            reviewsDataset.to_csv(reviewsInputFilePath, index=False)
-        except:
-            pass  
+        if len(reviews) > 0:
+            try:
+                restaurant = restaurantDataset.loc[restaurantDataset['id'] == restaurantId].iloc[0]
+                logging.info(f"Restaurant {i}/{size} with {len(reviews)} reviews")
+                restaurantLink = restaurant["Yelp"]
+                findUsersLink(driver, restaurantLink, reviews, maxPages, reviewsDataset)
+                i = i + 1
+                logging.info(f"Saveing...")
+                reviewsDataset.to_csv(reviewsInputFilePath, index=False)
+            except Exception as e:
+                print(e)
+                pass  
 
 
     logging.info(f"Done!")
