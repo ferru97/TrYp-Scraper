@@ -18,10 +18,9 @@ def loadPage(driver, url):
 
 def loadNextPage(driver, url, page):
     try:
-        if page == 0:
-            nextPage = ""
-        else:
-            nextPage = "?start=" + str(10 * page)
+        nextPage = "?sort_by=date_desc"
+        if page > 0:
+            nextPage = "&start=" + str(10 * page)
         nextPageUrl = url + nextPage
         loadPage(driver, nextPageUrl)
         expandedHtml = driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
