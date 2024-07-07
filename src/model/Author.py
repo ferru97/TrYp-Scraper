@@ -25,15 +25,12 @@ class Author:
         self.reviews = DEFAULT_VALUE
         self.tagsReviewMap = dict()
         self.tagsComplimentMap = dict()
+        self.topCategoryMap = dict()
+        self.elite = DEFAULT_VALUE
         
     def getCsvRecord(self):
         authorData = self.__dict__
         extraData = dict()
         for key in authorData:
-            if type(authorData[key]) is dict:
-                dictValues = authorData[key]
-                for k, v in dictValues.items():
-                    extraData[k] = v
-            else:
-                authorData[key] = authorData[key].replace(";", " ")
+            authorData[key] = authorData[key].replace(";", " ")
         return {**authorData, **extraData}
