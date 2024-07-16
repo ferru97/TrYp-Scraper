@@ -30,7 +30,7 @@ def updateDf(userObj, userDataset, index):
 
 def run(filename):
     inputFilePath = os.path.join(INPUT_FILE_DIRECTORY, filename)
-    userDataset = pd.read_csv(inputFilePath)
+    userDataset = pd.read_csv(inputFilePath, sep=';')
 
     if not ELITE_COLUMN in userDataset:
         userDataset[ELITE_COLUMN] = "--"
